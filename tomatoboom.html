@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TomatoBoom</title>
+<style>
+  :root {
+    --xp-blue: #0a246a;
+    --xp-blue-light: #3a6ea5;
+    --xp-teal: #1b8a5a;
+    --xp-grey: #ece9d8;
+    --tile-cover: #c0c0c0;
+    --tile-cover-light: #e8e8e8;
+    --tile-cover-dark: #808080;
+    --tomato-red: #e0392b;
+    --mine-dark: #2b2b2b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Tahoma", "Segoe UI", Verdana, sans-serif;
+    background: linear-gradient(180deg, #5a9fd4 0%, #2a6bc4 40%, #1d4e96 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .window {
+    width: 100%;
+    max-width: 480px;
+    background: var(--xp-grey);
+    border: 1px solid #0a246a;
+    border-radius: 8px 8px 4px 4px;
+    box-shadow: 4px 6px 18px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+
+  .titlebar {
+    background: linear-gradient(180deg, #2a6bc4 0%, #1c4faa 50%, #163f8c 100%);
+    color: white;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .titlebar .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .titlebar .icon {
+    width: 18px;
+    height: 18px;
+    background: var(--tomato-red);
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid #5fae4a;
+    position: relative;
+  }
+
+  .titlebar .icon::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 6px;
+    width: 6px;
+    height: 6px;
+    background: #5fae4a;
+    border-radius: 2px;
+    transform: rotate(20deg);
+  }
+
+  .winbtns {
+    display: flex;
+    gap: 3px;
+  }
+
+  .winbtns span {
+    width: 20px;
+    height: 18px;
+    background: #d8d4c4;
+    border: 1px solid #6b7a8f;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #333;
+    font-weight: bold;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 6px 4px 14px;
+  }
+
+  .hero h1 {
+    font-family: "Trebuchet MS", Tahoma, sans-serif;
+    font-size: 28px;
+    margin: 4px 0 2px;
+    color: var(--xp-blue);
+    letter-spacing: 1px;
+  }
+
+  .hero .tag {
+    font-size: 12px;
+    color: #444;
+  }
+
+  .panel {
+    background: #d4d0c8;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+  }
+
+  .counter {
+    background: #000;
+    color: var(--tomato-red);
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 16px;
+    min-width: 46px;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .face-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ffd34d;
+    border: 2px solid;
+    border-color: #fff5cc #b8860b #b8860b #fff5cc;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 1px;
+    background: #808080;
+    border: 3px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    aspect-ratio: 1 / 1;
+  }
+
+  .cell {
+    background: var(--tile-cover);
+    border: 2px solid;
+    border-color: var(--tile-cover-light) var(--tile-cover-dark) var(--tile-cover-dark) var(--tile-cover-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(10px, 2.6vw, 16px);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .cell.revealed {
+    background: #d4d0c8;
+    border: 2px solid #999;
+  }
+
+  .cell.tomato.revealed {
+    background: #ffe3df;
+  }
+
+  .cell.mine.revealed {
+    background: var(--mine-dark);
+  }
+
+  .cell .tomato-icon {
+    width: 68%;
+    height: 68%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff6b5a, var(--tomato-red) 70%);
+    position: relative;
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3);
+  }
+
+  .cell .tomato-icon::after {
+    content: "";
+    position: absolute;
+    top: -22%;
+    left: 28%;
+    width: 44%;
+    height: 30%;
+    background: #4a8c3a;
+    border-radius: 40% 40% 0 0;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+
+  .cell .mine-icon {
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    background: #1a1a1a;
+    box-shadow: inset 2px 2px 3px rgba(255,255,255,0.2);
+  }
+
+  .cell.flagged::before {
+    content: "";
+    width: 0; height: 0;
+    border-left: 8px solid var(--tomato-red);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    position: absolute;
+    left: 35%;
+    top: 25%;
+  }
+
+  .cell.flagged::after {
+    content: "";
+    position: absolute;
+    left: 35%;
+    top: 25%;
+    width: 2px;
+    height: 60%;
+    background: #333;
+  }
+
+  .num-1 { color: #1976d2; }
+  .num-2 { color: #388e3c; }
+  .num-3 { color: var(--tomato-red); }
+  .num-4 { color: #1a237e; }
+  .num-5 { color: #6d4c41; }
+  .num-6 { color: #00897b; }
+  .num-7 { color: #424242; }
+  .num-8 { color: #757575; }
+
+  .rules {
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  .rules b { color: var(--xp-blue); }
+
+  .reward-list {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #222;
+  }
+
+  .reward-list .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 4px;
+    border-bottom: 1px dashed #b8b4a8;
+  }
+
+  .reward-list .row:last-child { border-bottom: none; }
+
+  .section-title {
+    font-weight: bold;
+    font-size: 13px;
+    color: var(--xp-blue);
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-title .dot {
+    width: 8px; height: 8px;
+    background: var(--tomato-red);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: #555;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .reset-row {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .xp-button {
+    background: linear-gradient(180deg, #fefefe, #d8d4c4);
+    border: 1px solid #888;
+    border-radius: 3px;
+    padding: 5px 16px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .xp-button:active {
+    background: #c4c0b4;
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar">
+    <div class="title"><span class="icon"></span> TomatoBoom.exe</div>
+    <div class="winbtns"><span>_</span><span>□</span><span>×</span></div>
+  </div>
+  <div class="content">
+    <div class="hero">
+      <h1>Tomato Boom</h1>
+      <div class="tag">Windows XP style bounty game &mdash; clear tomatoes, avoid hidden mines</div>
+    </div>
+
+    <div class="panel">
+      <div class="status-bar">
+        <div class="counter" id="mineCounter">020</div>
+        <button class="face-btn" id="faceBtn" title="New game">🙂</button>
+        <div class="counter" id="timeCounter">000</div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="panel rules">
+      <p class="section-title"><span class="dot"></span>Rules</p>
+      80 tomatoes &middot; 20 mines &middot; right-click to place a flag &middot; reveal all tomatoes to win.
+    </div>
+
+    <div class="panel reward-list">
+      <p class="section-title"><span class="dot"></span>Reward table</p>
+      <div class="row"><span>🍅 10 tomatoes</span><span>1 point</span></div>
+      <div class="row"><span>🍅 20 tomatoes</span><span>2 points</span></div>
+      <div class="row"><span>🍅 30 tomatoes</span><span>3 points</span></div>
+      <div class="row"><span>🍅 40 tomatoes</span><span>4 points</span></div>
+      <div class="row"><span>🍅 50 tomatoes</span><span>5 points</span></div>
+      <div class="row"><span>🍅 60 tomatoes</span><span>6 points</span></div>
+      <div class="row"><span>🍅 70 tomatoes</span><span>7 points</span></div>
+      <div class="row"><span>🍅 80 tomatoes</span><span>10 points</span></div>
+    </div>
+
+    <div class="reset-row">
+      <button class="xp-button" id="resetBtn">New game</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  const SIZE = 10;
+  const MINES = 20;
+  const boardEl = document.getElementById('board');
+  const mineCounterEl = document.getElementById('mineCounter');
+  const timeCounterEl = document.getElementById('timeCounter');
+  const faceBtn = document.getElementById('faceBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let cells = [];
+  let revealedCount = 0;
+  let flagCount = 0;
+  let gameOver = false;
+  let timer = null;
+  let seconds = 0;
+
+  function init() {
+    boardEl.innerHTML = '';
+    cells = [];
+    revealedCount = 0;
+    flagCount = 0;
+    gameOver = false;
+    seconds = 0;
+    clearInterval(timer);
+    timer = null;
+    updateCounters();
+    faceBtn.textContent = '🙂';
+
+    // create grid data
+    for (let r = 0; r < SIZE; r++) {
+      const row = [];
+      for (let c = 0; c < SIZE; c++) {
+        row.push({ mine: false, revealed: false, flagged: false, adjacent: 0, r, c });
+      }
+      cells.push(row);
+    }
+
+    // place mines
+    let placed = 0;
+    while (placed < MINES) {
+      const r = Math.floor(Math.random() * SIZE);
+      const c = Math.floor(Math.random() * SIZE);
+      if (!cells[r][c].mine) {
+        cells[r][c].mine = true;
+        placed++;
+      }
+    }
+
+    // compute adjacents
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (cells[r][c].mine) continue;
+        let count = 0;
+        forEachNeighbor(r, c, (nr, nc) => { if (cells[nr][nc].mine) count++; });
+        cells[r][c].adjacent = count;
+      }
+    }
+
+    // render
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.dataset.r = r;
+        div.dataset.c = c;
+        div.addEventListener('click', onLeftClick);
+        div.addEventListener('contextmenu', onRightClick);
+        boardEl.appendChild(div);
+        cells[r][c].el = div;
+      }
+    }
+  }
+
+  function forEachNeighbor(r, c, fn) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) fn(nr, nc);
+      }
+    }
+  }
+
+  function updateCounters() {
+    mineCounterEl.textContent = String(Math.max(0, MINES - flagCount)).padStart(3, '0');
+    timeCounterEl.textContent = String(Math.min(999, seconds)).padStart(3, '0');
+  }
+
+  function startTimerIfNeeded() {
+    if (!timer) {
+      timer = setInterval(() => {
+        seconds++;
+        updateCounters();
+      }, 1000);
+    }
+  }
+
+  function onLeftClick(e) {
+    if (gameOver) return;
+    const r = parseInt(e.currentTarget.dataset.r);
+    const c = parseInt(e.currentTarget.dataset.c);
+    const cell = cells[r][c];
+    if (cell.flagged || cell.revealed) return;
+    startTimerIfNeeded();
+    reveal(r, c);
+    checkWin();
+  }
+
+  function onRightClick(e) {
+    e.preventDefault();
+    if (gameOver) return;
+    const r = parseInt(e.currentTarget.dataset.r);
+    const c = parseInt(e.currentTarget.dataset.c);
+    const cell = cells[r][c];
+    if (cell.revealed) return;
+    cell.flagged = !cell.flagged;
+    flagCount += cell.flagged ? 1 : -1;
+    cell.el.classList.toggle('flagged', cell.flagged);
+    updateCounters();
+  }
+
+  function reveal(r, c) {
+    const cell = cells[r][c];
+    if (cell.revealed || cell.flagged) return;
+    cell.revealed = true;
+    cell.el.classList.add('revealed');
+    revealedCount++;
+
+    if (cell.mine) {
+      cell.el.classList.add('mine');
+      cell.el.innerHTML = '<div class="mine-icon"></div>';
+      endGame(false);
+      return;
+    }
+
+    if (cell.adjacent > 0) {
+      cell.el.classList.add('tomato');
+      cell.el.innerHTML = '<span class="num-' + cell.adjacent + '">' + cell.adjacent + '</span>';
+    } else {
+      cell.el.classList.add('tomato');
+      cell.el.innerHTML = '<div class="tomato-icon"></div>';
+      forEachNeighbor(r, c, (nr, nc) => reveal(nr, nc));
+    }
+  }
+
+  function endGame(won) {
+    gameOver = true;
+    clearInterval(timer);
+    faceBtn.textContent = won ? '😎' : '😵';
+    if (!won) {
+      // reveal all mines
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const cell = cells[r][c];
+          if (cell.mine && !cell.revealed) {
+            cell.el.classList.add('revealed', 'mine');
+            cell.el.innerHTML = '<div class="mine-icon"></div>';
+          }
+        }
+      }
+    }
+  }
+
+  function checkWin() {
+    if (revealedCount === SIZE * SIZE - MINES) {
+      endGame(true);
+    }
+  }
+
+  faceBtn.addEventListener('click', init);
+  resetBtn.addEventListener('click', init);
+
+  init();
+})();
+</script>
+</body>
+</html>
